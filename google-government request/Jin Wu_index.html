@@ -1,0 +1,4758 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="d3.min.js"></script>
+  <script src="c3.min.js"></script>
+  <script src="http://d3js.org/topojson.v1.min.js"></script>
+  <script src="d3-tip.js"></script>
+<!-- <script src="d3.slider.js"></script>
+<script src="https://raw.github.com/fryn/html5slider/master/html5slider.js"></script> -->
+
+<!-- Load c3.css -->
+  <link href="c3.css" rel="stylesheet" type="text/css">
+  <!-- <link rel="stylesheet" href="d3.slider.css" />  -->
+   <!-- Google fonts here -->
+   <link href='http://fonts.googleapis.com/css?family=Cuprum:400,700' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:300' rel='stylesheet' type='text/css'>
+
+    <style>
+  /*  .wrapper {
+      width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .wrapper > div {
+      margin: 35px 0;
+    }*/
+
+    .title1 {
+      font-family: Cuprum, san-serif;
+      font-size: 4em;
+      color:#3369E8;
+      padding-left: 3%;
+      padding-top: 1%;
+    }
+
+    .title2 {
+      font-family:'Roboto Slab', serif;
+      font-size: 1.2em;
+      padding-left: 3%;
+      padding-bottom: 1%;
+      width: 85%;
+
+    }
+
+    button {
+      color: white;
+      border-radius: 28px;
+      border: #009925;
+      font-family: helvetica;
+      font-size:0.8em;
+      background: #009925;
+      padding: 10px 20px 10px 20px;
+      text-decoration: none;
+      width:7%;
+      }
+
+     button:hover {
+    background:#8BA870;
+    }
+
+      #chart {
+        padding: 1%;
+        width:90%;
+        height:550px;
+      }
+
+    #dataViz {
+      padding: 2%;
+      padding-top: 5%;
+    }
+
+    ul li{
+      display:inline;
+    }
+
+    /* Tooltip CSS */
+    .d3-tip {
+    line-height: 1.5;
+    font-weight: 400;
+    font-family:"avenir next", Arial, sans-serif;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #FFA500;
+    border-radius: 1px;
+    pointer-events: none;
+    }
+
+    /* Creates a small triangle extender for the tooltip */
+    .d3-tip:after {      
+      box-sizing: border-box;
+      display: inline;
+      font-size: 8px;
+      width: 100%;
+      line-height: 1.5;
+      color: rgba(0, 0, 0, 0.6);
+      position: absolute;
+      pointer-events: none;
+    }
+
+    /* Northward tooltips */
+    .d3-tip.n:after {
+      content: "\25BC";
+      margin: -1px 0 0 0;
+      top: 100%;
+      left: 0;
+      text-align: center;
+    }
+
+    /* Eastward tooltips */
+    .d3-tip.e:after {
+      content: "\25C0";
+      margin: -4px 0 0 0;
+      top: 50%;
+      left: -8px;
+    }
+
+    /* Southward tooltips */
+    .d3-tip.s:after {
+      content: "\25B2";
+      margin: 0 0 1px 0;
+      top: -8px;
+      left: 0;
+      text-align: center;
+    }
+
+    /* Westward tooltips */
+    .d3-tip.w:after {
+      content: "\25B6";
+      margin: -4px 0 0 -1px;
+      top: 50%;
+      left: 100%;
+    }
+
+    .circle:hover{
+      stroke: rgb(0, 0, 0); 
+      stroke-width: 1px;
+    }
+    .details{
+      color: white;
+      /*font-weight: 600;*/
+    }
+
+    #LineTitle {
+      padding-left: 28%;
+      font-size: 1.7em;
+      font-family: Cuprum, san-serif;
+    }
+
+    #mapDescription {
+      font-family:'Roboto Slab', serif;
+      font-size: 1.2em;
+      width: 90%;
+      padding-left: 3%;
+    }
+
+    #credit {
+      font-family:'Roboto Slab', serif;
+      font-size: 0.8em;
+      width: 90%;
+      padding-left: 3%;
+    }
+
+    #time {
+      font-family: Cuprum, san-serif;
+      font-size: 2em;
+      color:#7491A3;
+      position:absolute;
+      top:1320px;
+      left:50px;
+    }
+
+  </style>
+  </head>
+
+<body>
+
+<div class="container">
+  <h1 class="title1">How many data requests</br>did governments file to G<span style="color:#D50F25">O</span><span style="color:#EEB211">O</span>G<span style="color:#009925">L</span><span style="color:#D50F25">E</span>?</h1>
+  <p id="credit">Produced by Jin Wu</p>
+  <p class="title2">Each year, Google received a bunch of data requests from governments all over the world asking for user information and the number has been growing over the years. In Google's Transpanrency Report, the company disclosed the number of requests it received from each government in six-month periods except 2009, which was reported on a full year basis. The top graph shows the five countries that filed the most requests and the total number of accounts affected by the investigations. The bottom graph illusatrates the complete dataset.</p>
+  
+</div>
+  <h4 id="LineTitle">Number of Government Requests - Top 5 Countries</h4>
+
+<div id="chart">
+
+  <script type="text/javascript">
+
+  var chart = c3.generate( {
+    height: 1000,
+    bindto:"#chart",
+    data: {
+      x:'x',
+      columns: [
+        // ['date','2009.12','2010.06','2010.12','2011.06','2011.12','2012.06','2012.12','2013.06','2013.12','2014.06'],
+        ['x','2009-12-31','2010-06-30','2010-12-31','2011-06-30','2011-12-31','2012-06-30','2012-12-31','2013-06-30','2013-12-31','2014-06-30'],
+        ['United States',3580,4287,4601,5950,6321,7969,8438,10918,10574,12539],
+        ['Brazil',3663,2435,1804,703,1615,1566,1211,1239,1085,684],
+        ['United Kingdom',1166,1343,1162,1279,1455,1425,1458,1274,1397,1535],
+            ['France',846,1017,1021,1312,1404,1546,1693,2011,2750,3002],
+            ['India',1061,1430,1699,1739,2207,2319,2431,2691,2513,2794],
+
+        ['TotalAccountsAffected',0,0,0,25342,28562,34615,33634,42500,42648,48615],
+      ],
+      type:'line',
+      types: {
+        TotalAccountsAffected: 'bar',
+      },
+      colors: {
+            TotalAccountsAffected: '#636363',
+      }, 
+      axes: {
+        TotalAccountsAffected: 'y2',
+      }
+  },
+  axis: {
+    x: {
+        type: 'timeseries',
+        // categories: ['2009.12','2010.06','2010.12','2011.06','2011.12','2012.06','2012.12','2013.06','2013.12','2014.06']
+        tick: {
+          format: '%Y-%m-%d'
+        },
+      label: {
+        text:'Year Period',
+        position:'outer-center',
+      }
+    },
+    y: {
+      padding: {bottom:13},
+      label: {
+        text: 'Number of requests',
+        position: 'outer-middle',
+      }
+    },
+    y2: {
+      show: true,
+      padding: {bottom:0},
+      // max: 50000,
+      // min:5000,
+      label: {
+        text: 'Total Accounts Affected',
+        position: 'outer-middle',
+      }
+    }
+  }
+  
+});
+</script>
+
+<p style="padding-left:1%;"><em>Note: The number of total accounts afftected includes all the user accounts that were related to requests from governments all over the world, not only limited to the top five countries. Google didn't start disclosing this data until 2011.</em></br>Source: Google Transparency Report</p>
+</div>
+
+<div id="dataViz">
+  <p id="mapDescription">In 2009, only 21 countries filed data requests asking Google to hand over user information. In 2014, by the end of June, <span style="font-size: 1.7em;"><strong>67</strong></span> countries have filed requests. Click on the tabs below to explore the complete dataset.</p>
+  <!-- <input id="slider" type="range" min="1987" max="2010" value="1987" step="1" />
+  <span id="range">2009</span> -->
+  <ul>
+    <li><button id="goto2009">Year 2009</button></li>
+    <li><span style="padding-left:2%;padding-right:1%"><button id="goto201006">June 2010</span></button></li>
+    <li><span style="padding-left:1%;padding-right:1%"><button id="goto201012">Dec. 2010</button></span></li>
+    </li><span style="padding-left:1%;padding-right:1%"><button id="goto201106">June 2011</button></span></li>
+    <li><span style="padding-left:1%;padding-right:1%"><button id="goto201112">Dec. 2011</button></span></li>
+    <li><span style="padding-left:1%;padding-right:1%"><button id="goto201206">June 2012</button></span></li>
+    <li><span style="padding-left:1%;padding-right:1%"><button id="goto201212">Dec. 2012</button></span></li>
+    <li><span style="padding-left:1%;padding-right:1%"><button id="goto201306">June 2013</button></span></li>
+    <li><span style="padding-left:1%;padding-right:1%"><button id="goto201312">Dec. 2013</button></span></li>
+    <li><span style="padding-left:1%;padding-right:1%"><button id="goto201406">June 2014</button></span></li>
+  </ul>
+
+<p id="time">2009</p>
+<!-- for future sliders -->
+
+  <!-- <div class="wrapper">
+    <div id="slider7"></div>
+    <div id="slider10"></div>
+  </div> -->
+</div>
+<!-- 
+// onload = function() {
+//   var $ = function(id) { return document.getElementById(id); };
+//   $('slider').oninput = function() { $('range').innerHTML = this.value; };
+//   $('slider').oninput();
+// }; -->
+</script>
+
+<script>
+    // d3.select('#slider7').call(d3.slider().axis(true).min(2009).max(2014.6).step(0.5));
+       // d3.select('#slider10').call(d3.slider().scale(d3.time.scale().domain([new Date(2009,6,30), new Date(2014,6,30)])).axis(d3.svg.axis()));
+
+
+// var dateScale, sliderScale, slider
+// var orderedColumns = [],
+//     currentFrame = 0,
+//     interval,
+//     frameLength = 500,
+//     isPlaying - false;
+
+// var sliderMargin = 65;
+
+// Set tooltips
+var axis = d3.svg.axis().orient("top").ticks(4);
+    
+    // d3.select('#slider').call(d3.slider().axis(true).min(2009).max(2014).step(10));
+
+
+var tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([-10, 0])
+            .html(function(d) {
+              // return d.name + " has <br>" + d.value + " stateless people";
+              return "<strong>Country: </strong><span class='details'>" + d.Country + "<br></span>" + "<strong>Number of Requests: </strong><span class='details'>" + d.Requests +"</span>";
+            })
+// Set margin, with and height
+var margin = {top: 20, right: 30, bottom: 30, left: 30},
+            width = 1200 - margin.left - margin.right,
+            height = 800 - margin.top - margin.bottom;  
+// Set projection 
+var projection = d3.geo.mercator()
+                   .scale(200)
+                   .translate( [width / 2, height / 1.5]);
+// Set path
+var path = d3.geo.path().projection(projection);
+// Setsvg and then give it a class called map
+var svg = d3.select("#dataViz")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append('g')
+            .attr('class', 'map');
+// Call tooltips
+svg.call(tip);
+
+d3.json("world_countries.json", function(data){
+      // Binding geodata
+      var map = svg.selectAll('path')
+                           .data(data.features)
+                           .enter()
+                           .append('path')
+                           .attr('d', path)
+                           .style('fill', '#c9cbcd')
+                           .style('opacity','0.7')
+                           .style('stroke', 'white')
+                           .style('stroke-width', 1.5);
+      // Bubbles data
+      var requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Argentina",
+  "location" : [-34.0000,-64.0000],
+  "Requests":98
+},
+{
+  "Country":"Australia",
+  "location" : [-27.0000,133.0000],
+  "Requests":155
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":0
+},
+{
+  "Country":"Belgium",
+  "location" : [50.8333,4.0000],
+  "Requests":67
+},
+{
+  "Country":"Brazil",
+  "location" : [-10.0000,-55.0000],
+  "Requests":3663
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":0
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":41
+},
+{
+  "Country":"Chile",
+  "location" : [-30.0000,-71.0000],
+  "Requests":110
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":0
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":0
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":0
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":0
+}, 
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":0
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":0
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":0
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"France",
+  "location" : [46.0000,2.0000],
+  "Requests":846
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":0
+},
+{
+  "Country":"Germany",
+  "location" : [51.0000,9.0000],
+  "Requests":458
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":0
+},
+{
+  "Country":"Hong Kong",
+  "location" : [22.2500,114.1667],
+  "Requests":0
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"India",
+  "location" : [20.0000,77.0000],
+  "Requests":1061
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":0
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":0
+},
+{
+  "Country":"Israel",
+  "location" : [31.5000,34.7500],
+  "Requests":30
+},
+{
+  "Country":"Italy",
+  "location" : [42.8333,12.8333],
+  "Requests":550
+},
+{
+  "Country":"Japan",
+  "location" : [36.0000,138.0000],
+  "Requests":44
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":0
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":0
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":0
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":0
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":0
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":0
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":0
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":0
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":0
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":0
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests":0
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 0
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 0
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":67
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":0
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":0
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":0
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":0
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests":86
+},
+{
+  "Country":"Portugal",
+  "location" : [39.5000,-8.0000],
+  "Requests":45
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Singapore",
+  "location" : [1.3667,103.8000],
+  "Requests":62
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":0
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"South Korea",
+  "location" : [37.0000,127.5000],
+  "Requests":44
+},
+{
+  "Country":"Spain",
+  "location" : [40.0000,-4.0000],
+  "Requests":324
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"Switzerland",
+  "location" : [47.0000,8.0000],
+  "Requests":42
+},
+{
+  "Country":"Taiwan",
+  "location" : [23.5000,121.0000],
+  "Requests":0
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Turkey",
+  "location" : [39.0000,35.0000],
+  "Requests":0
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":0
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":0
+},
+{
+  "Country":"United Kingdom",
+  "location" : [54.0000,-2.0000],
+  "Requests":1166
+},
+{
+  "Country":"United States",
+  "location" : [38.0000,-97.0000],
+  "Requests":3580
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":0
+}
+];
+      // Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        // .attr("r", function(d){ return d.value/18000;})
+        .attr("r",5)
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        // .style("stroke","#3369E8")
+        // .style('stroke-width', 0.5)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        })
+        .transition()
+        .duration(2500)
+        .delay(function(d, i){
+          return i * 20;
+        })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14);
+        });
+        });
+
+// update data for June 2010
+d3.select("#goto201006")
+  .on("click", function() {
+     document.getElementById("time").innerHTML = "June 2010";
+
+    requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Argentina",
+  "location": [-34.0000,-64.0000],
+  "Requests":134
+},
+{
+  "Country":"Australia",
+  "location": [-27.0000,133.0000],
+  "Requests":200
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":0
+},
+{
+  "Country":"Belgium",
+  "location": [50.8333,4.0000],
+  "Requests":71
+},
+{
+  "Country":"Brazil",
+  "location": [-10.0000,-55.0000],
+  "Requests":2435
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":0
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":0
+},
+{
+  "Country":"Chile",
+  "location": [-30.0000,-71.0000],
+  "Requests":115
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":0
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":0
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":0
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":0
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":0
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":0
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"France",
+  "location": [46.0000,2.0000],
+  "Requests":1017
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":0
+},
+{
+  "Country":"Germany",
+  "location": [51.0000,9.0000],
+  "Requests":668
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":0
+},
+{
+  "Country":"Hong Kong",
+  "location": [22.2500,114.1667],
+  "Requests":50
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"India",
+  "location": [20.0000,77.0000],
+  "Requests":1430
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":0
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":0
+},
+{
+  "Country":"Israel",
+  "location": [31.5000,34.7500],
+  "Requests":30
+},
+{
+  "Country":"Italy",
+  "location": [42.8333,12.8333],
+  "Requests":651
+},
+{
+  "Country":"Japan",
+  "location": [36.0000,138.0000],
+  "Requests":56
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":0
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":0
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":0
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":0
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":0
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":0
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":0
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":0
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":0
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":0
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests":0
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 0
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 0
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":0
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":0
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":0
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":0
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":0
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Portugal",
+  "location": [39.5000,-8.0000],
+  "Requests":73
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Singapore",
+  "location": [1.3667,103.8000],
+  "Requests":106
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":0
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"South Korea",
+  "location": [37.0000,127.5000],
+  "Requests":170
+},
+{
+  "Country":"Spain",
+  "location": [40.0000,-4.0000],
+  "Requests":372
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"Switzerland",
+  "location": [47.0000,8.0000],
+  "Requests":35
+},
+{
+  "Country":"Taiwan",
+  "location": [23.5000,121.0000],
+  "Requests":130
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Turkey",
+  "location": [39.0000,35.0000],
+  "Requests":51
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":0
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":0
+},
+{
+  "Country":"United Kingdom",
+  "location": [54.0000,-2.0000],
+  "Requests":1343
+},
+{
+  "Country":"United States",
+  "location": [38.0000,-97.0000],
+  "Requests":4287
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":0
+}
+];
+      // Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        // .enter()
+        // .append("circle")
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14)})
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        });
+
+  });
+
+// update data for Dec. 2010
+d3.select("#goto201012")
+  .on("click", function() {
+    document.getElementById("time").innerHTML = "December 2010";
+    requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Argentina",
+  "location": [-34.0000,-64.0000],
+  "Requests":127
+},
+{
+  "Country":"Australia",
+  "location": [-27.0000,133.0000],
+  "Requests":345
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":0
+},
+{
+  "Country":"Belgium",
+  "location": [50.8333,4.0000],
+  "Requests":85
+},
+{
+  "Country":"Brazil",
+  "location": [-10.0000,-55.0000],
+  "Requests":1804
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":0
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":38
+},
+{
+  "Country":"Chile",
+  "location": [-30.0000,-71.0000],
+  "Requests":121
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":0
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":0
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":0
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":0
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":0
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":0
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"France",
+  "location": [46.0000,2.0000],
+  "Requests":1021
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":0
+},
+{
+  "Country":"Germany",
+  "location": [51.0000,9.0000],
+  "Requests":768
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":0
+},
+{
+  "Country":"Hong Kong",
+  "location": [22.2500,114.1667],
+  "Requests":90
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":68
+},
+{
+  "Country":"India",
+  "location": [20.0000,77.0000],
+  "Requests":1699
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":0
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":0
+},
+{
+  "Country":"Israel",
+  "location": [31.5000,34.7500],
+  "Requests":54
+},
+{
+  "Country":"Italy",
+  "location": [42.8333,12.8333],
+  "Requests":837
+},
+{
+  "Country":"Japan",
+  "location": [36.0000,138.0000],
+  "Requests":72
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":0
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":0
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":0
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":0
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":0
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":0
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":0
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":0
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":0
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":0
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests":34
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 0
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 0
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":43
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":0
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":0
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":0
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":0
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests":272
+},
+{
+  "Country":"Portugal",
+  "location": [39.5000,-8.0000],
+  "Requests":92
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Singapore",
+  "location": [1.3667,103.8000],
+  "Requests":118
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":0
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"South Korea",
+  "location": [37.0000,127.5000],
+  "Requests":190
+},
+{
+  "Country":"Spain",
+  "location": [40.0000,-4.0000],
+  "Requests":359
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"Switzerland",
+  "location": [47.0000,8.0000],
+  "Requests":0
+},
+{
+  "Country":"Taiwan",
+  "location": [23.5000,121.0000],
+  "Requests":156
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Turkey",
+  "location": [39.0000,35.0000],
+  "Requests":45
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":0
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":0
+},
+{
+  "Country":"United Kingdom",
+  "location": [54.0000,-2.0000],
+  "Requests":1162
+},
+{
+  "Country":"United States",
+  "location": [38.0000,-97.0000],
+  "Requests":4601
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":0
+}
+];
+      // Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        // .enter()
+        // .append("circle")
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14)})
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        });
+  });
+
+
+// update data for June. 2011
+d3.select("#goto201106")
+  .on("click", function() {
+    document.getElementById("time").innerHTML = "June 2011";
+    requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Argentina",
+  "location": [-34.0000,-64.0000],
+  "Requests":134
+},
+{
+  "Country":"Australia",
+  "location": [-27.0000,133.0000],
+  "Requests":361
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":0
+},
+{
+  "Country":"Belgium",
+  "location": [50.8333,4.0000],
+  "Requests":90
+},
+{
+  "Country":"Brazil",
+  "location": [-10.0000,-55.0000],
+  "Requests":703
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":0
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":50
+},
+{
+  "Country":"Chile",
+  "location": [-30.0000,-71.0000],
+  "Requests":118
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":0
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":0
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":0
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":0
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":0
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":0
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"France",
+  "location": [46.0000,2.0000],
+  "Requests":1312
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":0
+},
+{
+  "Country":"Germany",
+  "location": [51.0000,9.0000],
+  "Requests":1065
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":0
+},
+{
+  "Country":"Hong Kong",
+  "location": [22.2500,114.1667],
+  "Requests":123
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":81
+},
+{
+  "Country":"India",
+  "location": [20.0000,77.0000],
+  "Requests":1739
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":0
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":0
+},
+{
+  "Country":"Israel",
+  "location": [31.5000,34.7500],
+  "Requests":60
+},
+{
+  "Country":"Italy",
+  "location": [42.8333,12.8333],
+  "Requests":934
+},
+{
+  "Country":"Japan",
+  "location": [36.0000,138.0000],
+  "Requests":75
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":0
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":0
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":0
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":0
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":0
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":0
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":0
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":0
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":0
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":0
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests":48
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 0
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 0
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":64
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":0
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":0
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":0
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":0
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests":266
+},
+{
+  "Country":"Portugal",
+  "location": [39.5000,-8.0000],
+  "Requests":161
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":42
+},
+{
+  "Country":"Singapore",
+  "location": [1.3667,103.8000],
+  "Requests":106
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":0
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"South Korea",
+  "location": [37.0000,127.5000],
+  "Requests":259
+},
+{
+  "Country":"Spain",
+  "location": [40.0000,-4.0000],
+  "Requests":460
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"Switzerland",
+  "location": [47.0000,8.0000],
+  "Requests":36
+},
+{
+  "Country":"Taiwan",
+  "location": [23.5000,121.0000],
+  "Requests":155
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Turkey",
+  "location": [39.0000,35.0000],
+  "Requests":73
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":0
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":0
+},
+{
+  "Country":"United Kingdom",
+  "location": [54.0000,-2.0000],
+  "Requests":1279
+},
+{
+  "Country":"United States",
+  "location": [38.0000,-97.0000],
+  "Requests":5950
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":0
+}
+];
+      // Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        // .enter()
+        // .append("circle")
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14)})
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        });
+  });
+
+// update data for Dec. 2011
+d3.select("#goto201112")
+  .on("click", function() {
+    document.getElementById("time").innerHTML = "December 2011";
+    requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Argentina",
+  "location": [-34.0000,-64.0000],
+  "Requests":141
+},
+{
+  "Country":"Australia",
+  "location": [-27.0000,133.0000],
+  "Requests":444
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":0
+},
+{
+  "Country":"Belgium",
+  "location": [50.8333,4.0000],
+  "Requests":99
+},
+{
+  "Country":"Brazil",
+  "location": [-10.0000,-55.0000],
+  "Requests":1615
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":0
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":41
+},
+{
+  "Country":"Chile",
+  "location": [-30.0000,-71.0000],
+  "Requests":117
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":0
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":0
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":0
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":0
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":0
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":0
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"France",
+  "location": [46.0000,2.0000],
+  "Requests":1404
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":0
+},
+{
+  "Country":"Germany",
+  "location": [51.0000,9.0000],
+  "Requests":1426
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":0
+},
+{
+  "Country":"Hong Kong",
+  "location": [22.2500,114.1667],
+  "Requests":202
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":73
+},
+{
+  "Country":"India",
+  "location": [20.0000,77.0000],
+  "Requests":2207
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":0
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":0
+},
+{
+  "Country":"Israel",
+  "location": [31.5000,34.7500],
+  "Requests":51
+},
+{
+  "Country":"Italy",
+  "location": [42.8333,12.8333],
+  "Requests":844
+},
+{
+  "Country":"Japan",
+  "location": [36.0000,138.0000],
+  "Requests":90
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":0
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":0
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":0
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":0
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":0
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":0
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":0
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":0
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":0
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":0
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests":67
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 0
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 0
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":37
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":0
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":0
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":49
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":0
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":0
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests": 241
+},
+{
+  "Country":"Portugal",
+  "location": [39.5000,-8.0000],
+  "Requests":147
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":58
+},
+{
+  "Country":"Singapore",
+  "location": [1.3667,103.8000],
+  "Requests":102
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":0
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"South Korea",
+  "location": [37.0000,127.5000],
+  "Requests":257
+},
+{
+  "Country":"Spain",
+  "location": [40.0000,-4.0000],
+  "Requests":388
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"Switzerland",
+  "location": [47.0000,8.0000],
+  "Requests":69
+},
+{
+  "Country":"Taiwan",
+  "location": [23.5000,121.0000],
+  "Requests":224
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Turkey",
+  "location": [39.0000,35.0000],
+  "Requests":88
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":0
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":0
+},
+{
+  "Country":"United Kingdom",
+  "location": [54.0000,-2.0000],
+  "Requests":1455
+},
+{
+  "Country":"United States",
+  "location": [38.0000,-97.0000],
+  "Requests":6321
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":0
+}
+];
+      // Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        // .enter()
+        // .append("circle")
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14)})
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        });
+  });
+
+// update data for June 2012
+d3.select("#goto201206")
+  .on("click", function() {
+    document.getElementById("time").innerHTML = "June 2012";
+    requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Argentina",
+  "location": [-34.0000,-64.0000],
+  "Requests":137
+},
+{
+  "Country":"Australia",
+  "location": [-27.0000,133.0000],
+  "Requests":523
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":0
+},
+{
+  "Country":"Belgium",
+  "location": [50.8333,4.0000],
+  "Requests":107
+},
+{
+  "Country":"Brazil",
+  "location": [-10.0000,-55.0000],
+  "Requests":1566
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":0
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":50
+},
+{
+  "Country":"Chile",
+  "location": [-30.0000,-71.0000],
+  "Requests":101
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":0
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":0
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":0
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":44
+},
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":32
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":0
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":0
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":0
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"France",
+  "location": [46.0000,2.0000],
+  "Requests":1546
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":0
+},
+{
+  "Country":"Germany",
+  "location": [51.0000,9.0000],
+  "Requests":1533
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":0
+},
+{
+  "Country":"Hong Kong",
+  "location": [22.2500,114.1667],
+  "Requests":192
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":92
+},
+{
+  "Country":"India",
+  "location": [20.0000,77.0000],
+  "Requests":2319
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":0
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":34
+},
+{
+  "Country":"Israel",
+  "location": [31.5000,34.7500],
+  "Requests":55
+},
+{
+  "Country":"Italy",
+  "location": [42.8333,12.8333],
+  "Requests":841
+},
+{
+  "Country":"Japan",
+  "location": [36.0000,138.0000],
+  "Requests":104
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":0
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":0
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":0
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":0
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":0
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":0
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":0
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":0
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":0
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":0
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests":71
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 0
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 0
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":59
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":0
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":0
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":37
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":0
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":0
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests": 351
+},
+{
+  "Country":"Portugal",
+  "location": [39.5000,-8.0000],
+  "Requests":184
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":58
+},
+{
+  "Country":"Singapore",
+  "location": [1.3667,103.8000],
+  "Requests":89
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":0
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":7
+},
+{
+  "Country":"South Korea",
+  "location": [37.0000,127.5000],
+  "Requests":423
+},
+{
+  "Country":"Spain",
+  "location": [40.0000,-4.0000],
+  "Requests":531
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"Switzerland",
+  "location": [47.0000,8.0000],
+  "Requests":82
+},
+{
+  "Country":"Taiwan",
+  "location": [23.5000,121.0000],
+  "Requests":271
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Turkey",
+  "location": [39.0000,35.0000],
+  "Requests":112
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":0
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":0
+},
+{
+  "Country":"United Kingdom",
+  "location": [54.0000,-2.0000],
+  "Requests":1425
+},
+{
+  "Country":"United States",
+  "location": [38.0000,-97.0000],
+  "Requests":7969
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":0
+}
+];
+      // Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        // .enter()
+        // .append("circle")
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14)})
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        });
+  });
+
+// update data for December 2012
+d3.select("#goto201212")
+  .on("click", function() {
+    document.getElementById("time").innerHTML = "December 2012";
+    requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Argentina",
+  "location": [-34.0000,-64.0000],
+  "Requests":114
+},
+{
+  "Country":"Australia",
+  "location": [-27.0000,133.0000],
+  "Requests":584
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":0
+},
+{
+  "Country":"Belgium",
+  "location": [50.8333,4.0000],
+  "Requests":120
+},
+{
+  "Country":"Brazil",
+  "location": [-10.0000,-55.0000],
+  "Requests":1211
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":0
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":38
+},
+{
+  "Country":"Chile",
+  "location": [-30.0000,-71.0000],
+  "Requests":109
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":0
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":0
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":0
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":51
+},
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":34
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":0
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":0
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":0
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"France",
+  "location": [46.0000,2.0000],
+  "Requests":1693
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":0
+},
+{
+  "Country":"Germany",
+  "location": [51.0000,9.0000],
+  "Requests":1550
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":0
+},
+{
+  "Country":"Hong Kong",
+  "location": [22.2500,114.1667],
+  "Requests":255
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":95
+},
+{
+  "Country":"India",
+  "location": [20.0000,77.0000],
+  "Requests":2431
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":0
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":0
+},
+{
+  "Country":"Israel",
+  "location": [31.5000,34.7500],
+  "Requests":56
+},
+{
+  "Country":"Italy",
+  "location": [42.8333,12.8333],
+  "Requests":846
+},
+{
+  "Country":"Japan",
+  "location": [36.0000,138.0000],
+  "Requests":124
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":0
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":0
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":0
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":0
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":0
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":0
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":0
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":0
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":0
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":0
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests":90
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 0
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 0
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":0
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":0
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":0
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":0
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":0
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests": 409
+},
+{
+  "Country":"Portugal",
+  "location": [39.5000,-8.0000],
+  "Requests":200
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":97
+},
+{
+  "Country":"Singapore",
+  "location": [1.3667,103.8000],
+  "Requests":96
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":0
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"South Korea",
+  "location": [37.0000,127.5000],
+  "Requests":355
+},
+{
+  "Country":"Spain",
+  "location": [40.0000,-4.0000],
+  "Requests":447
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"Switzerland",
+  "location": [47.0000,8.0000],
+  "Requests": 49
+},
+{
+  "Country":"Taiwan",
+  "location": [23.5000,121.0000],
+  "Requests":290
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Turkey",
+  "location": [39.0000,35.0000],
+  "Requests":149
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":0
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":0
+},
+{
+  "Country":"United Kingdom",
+  "location": [54.0000,-2.0000],
+  "Requests":1458
+},
+{
+  "Country":"United States",
+  "location": [38.0000,-97.0000],
+  "Requests":8438
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":0
+}
+];
+      // Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        // .enter()
+        // .append("circle")
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14)})
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        });
+  });
+
+// update data for June 2013
+d3.select("#goto201306")
+  .on("click", function() {
+    document.getElementById("time").innerHTML = "June 2013";
+    requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Argentina",
+  "location": [-34.0000,-64.0000],
+  "Requests":114
+},
+{
+  "Country":"Australia",
+  "location": [-27.0000,133.0000],
+  "Requests":645
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":0
+},
+{
+  "Country":"Belgium",
+  "location": [50.8333,4.0000],
+  "Requests":194
+},
+{
+  "Country":"Brazil",
+  "location": [-10.0000,-55.0000],
+  "Requests":1239
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":0
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":49
+},
+{
+  "Country":"Chile",
+  "location": [-30.0000,-71.0000],
+  "Requests":106
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":0
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":0
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":0
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":63
+},
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":37
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":0
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":0
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":0
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"France",
+  "location": [46.0000,2.0000],
+  "Requests":2011
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":0
+},
+{
+  "Country":"Germany",
+  "location": [51.0000,9.0000],
+  "Requests":2311
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":0
+},
+{
+  "Country":"Hong Kong",
+  "location": [22.2500,114.1667],
+  "Requests":253
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":86
+},
+{
+  "Country":"India",
+  "location": [20.0000,77.0000],
+  "Requests":2691
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":0
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":0
+},
+{
+  "Country":"Israel",
+  "location": [31.5000,34.7500],
+  "Requests":64
+},
+{
+  "Country":"Italy",
+  "location": [42.8333,12.8333],
+  "Requests":901
+},
+{
+  "Country":"Japan",
+  "location": [36.0000,138.0000],
+  "Requests":194
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":0
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":0
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":0
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":0
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":0
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":0
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":0
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":0
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":0
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":0
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests": 83
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 0
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 0
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":45
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":0
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":0
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":0
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":0
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests": 496
+},
+{
+  "Country":"Portugal",
+  "location": [39.5000,-8.0000],
+  "Requests":261
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":103
+},
+{
+  "Country":"Singapore",
+  "location": [1.3667,103.8000],
+  "Requests":111
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":0
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"South Korea",
+  "location": [37.0000,127.5000],
+  "Requests":357
+},
+{
+  "Country":"Spain",
+  "location": [40.0000,-4.0000],
+  "Requests":647
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":36
+},
+{
+  "Country":"Switzerland",
+  "location": [47.0000,8.0000],
+  "Requests": 80
+},
+{
+  "Country":"Taiwan",
+  "location": [23.5000,121.0000],
+  "Requests":306
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Turkey",
+  "location": [39.0000,35.0000],
+  "Requests":204
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":0
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":0
+},
+{
+  "Country":"United Kingdom",
+  "location": [54.0000,-2.0000],
+  "Requests":1274
+},
+{
+  "Country":"United States",
+  "location": [38.0000,-97.0000],
+  "Requests":10918
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":1
+}
+];
+      // Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        // .enter()
+        // .append("circle")
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14)})
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        });
+  });
+
+// update data for Dec. 2013
+d3.select("#goto201312")
+  .on("click", function() {
+    document.getElementById("time").innerHTML = "December 2013";
+    requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Argentina",
+  "location": [-34.0000,-64.0000],
+  "Requests":123
+},
+{
+  "Country":"Australia",
+  "location": [-27.0000,133.0000],
+  "Requests":780
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":23
+},
+{
+  "Country":"Belgium",
+  "location": [50.8333,4.0000],
+  "Requests":162
+},
+{
+  "Country":"Brazil",
+  "location": [-10.0000,-55.0000],
+  "Requests":1085
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":1
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":2
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":52
+},
+{
+  "Country":"Chile",
+  "location": [-30.0000,-71.0000],
+  "Requests":141
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":1
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":14
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":1
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":3
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":74
+},
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":58
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":0
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":3
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":0
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":2
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":13
+},
+{
+  "Country":"France",
+  "location": [46.0000,2.0000],
+  "Requests":2750
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":2
+},
+{
+  "Country":"Germany",
+  "location": [51.0000,9.0000],
+  "Requests":2660
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":13
+},
+{
+  "Country":"Hong Kong",
+  "location": [22.2500,114.1667],
+  "Requests":347
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":42
+},
+{
+  "Country":"India",
+  "location": [20.0000,77.0000],
+  "Requests":2513
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":0
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":15
+},
+{
+  "Country":"Israel",
+  "location": [31.5000,34.7500],
+  "Requests":43
+},
+{
+  "Country":"Italy",
+  "location": [42.8333,12.8333],
+  "Requests":896
+},
+{
+  "Country":"Japan",
+  "location": [36.0000,138.0000],
+  "Requests":111
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":8
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":0
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":3
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":1
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":11
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":0
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":3
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":2
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":0
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":54
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":1
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests": 81
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 0
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 0
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":53
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":14
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":2
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":37
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":3
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":2
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests": 502
+},
+{
+  "Country":"Portugal",
+  "location": [39.5000,-8.0000],
+  "Requests":283
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":16
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":90
+},
+{
+  "Country":"Singapore",
+  "location": [1.3667,103.8000],
+  "Requests":755
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":34
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":1
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":2
+},
+{
+  "Country":"South Korea",
+  "location": [37.0000,127.5000],
+  "Requests":353
+},
+{
+  "Country":"Spain",
+  "location": [40.0000,-4.0000],
+  "Requests":545
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":18
+},
+{
+  "Country":"Switzerland",
+  "location": [47.0000,8.0000],
+  "Requests": 111
+},
+{
+  "Country":"Taiwan",
+  "location": [23.5000,121.0000],
+  "Requests":439
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":14
+},
+{
+  "Country":"Turkey",
+  "location": [39.0000,35.0000],
+  "Requests":133
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":1
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":2
+},
+{
+  "Country":"United Kingdom",
+  "location": [54.0000,-2.0000],
+  "Requests":1397
+},
+{
+  "Country":"United States",
+  "location": [38.0000,-97.0000],
+  "Requests":10574
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":1
+}
+];
+      // Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        // .enter()
+        // .append("circle")
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14)})
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        });
+  });
+
+
+// update data for June 2014
+d3.select("#goto201406")
+  .on("click", function() {
+    document.getElementById("time").innerHTML = "June 2014";
+    requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":1
+},
+{
+  "Country":"Argentina",
+  "location": [-34.0000,-64.0000],
+  "Requests":139
+},
+{
+  "Country":"Australia",
+  "location": [-27.0000,133.0000],
+  "Requests":752
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":47
+},
+{
+  "Country":"Belgium",
+  "location": [50.8333,4.0000],
+  "Requests":213
+},
+{
+  "Country":"Brazil",
+  "location": [-10.0000,-55.0000],
+  "Requests":684
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":1
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":0
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":27
+},
+{
+  "Country":"Chile",
+  "location": [-30.0000,-71.0000],
+  "Requests":137
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":2
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":14
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":0
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":1
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":99
+},
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":52
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":2
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":1
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":1
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":3
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":17
+},
+{
+  "Country":"France",
+  "location": [46.0000,2.0000],
+  "Requests":3002
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":0
+},
+{
+  "Country":"Germany",
+  "location": [51.0000,9.0000],
+  "Requests":3338
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":16
+},
+{
+  "Country":"Hong Kong",
+  "location": [22.2500,114.1667],
+  "Requests":359
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":17
+},
+{
+  "Country":"India",
+  "location": [20.0000,77.0000],
+  "Requests":2794
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":1
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":10
+},
+{
+  "Country":"Israel",
+  "location": [31.5000,34.7500],
+  "Requests":88
+},
+{
+  "Country":"Italy",
+  "location": [42.8333,12.8333],
+  "Requests":1108
+},
+{
+  "Country":"Japan",
+  "location": [36.0000,138.0000],
+  "Requests":121
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":2
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":1
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":0
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":2
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":6
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":1
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":5
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":15
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":2
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":42
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":0
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests": 111
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 1
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 1
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":72
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":24
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":3
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":45
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":7
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":5
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests": 591
+},
+{
+  "Country":"Portugal",
+  "location": [39.5000,-8.0000],
+  "Requests":338
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":20
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":93
+},
+{
+  "Country":"Singapore",
+  "location": [1.3667,103.8000],
+  "Requests":1086
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":29
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":4
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":7
+},
+{
+  "Country":"South Korea",
+  "location": [37.0000,127.5000],
+  "Requests":416
+},
+{
+  "Country":"Spain",
+  "location": [40.0000,-4.0000],
+  "Requests":696
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":42
+},
+{
+  "Country":"Switzerland",
+  "location": [47.0000,8.0000],
+  "Requests": 124
+},
+{
+  "Country":"Taiwan",
+  "location": [23.5000,121.0000],
+  "Requests":548
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":10
+},
+{
+  "Country":"Turkey",
+  "location": [39.0000,35.0000],
+  "Requests":224
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":2
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":0
+},
+{
+  "Country":"United Kingdom",
+  "location": [54.0000,-2.0000],
+  "Requests":1535
+},
+{
+  "Country":"United States",
+  "location": [38.0000,-97.0000],
+  "Requests":12539
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":0
+}
+];
+      // Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        // .enter()
+        // .append("circle")
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14)})
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        });
+  });
+
+// update data for 2009
+d3.select("#goto2009")
+  .on("click", function() {
+    document.getElementById("time").innerHTML = "2009";
+    requests = [
+{
+  "Country":"Albania",
+  "location": [41.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"Argentina",
+  "location" : [-34.0000,-64.0000],
+  "Requests":98
+},
+{
+  "Country":"Australia",
+  "location" : [-27.0000,133.0000],
+  "Requests":155
+},
+{
+  "Country":"Austria",
+  "location": [47.3333,13.3333],
+  "Requests":0
+},
+{
+  "Country":"Belgium",
+  "location" : [50.8333,4.0000],
+  "Requests":67
+},
+{
+  "Country":"Brazil",
+  "location" : [-10.0000,-55.0000],
+  "Requests":3663
+},
+{
+  "Country":"Bulgaria",
+  "location": [43.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Côte d'Ivoire",
+  "location": [8.0000,-5.0000],
+  "Requests":0
+},
+{
+  "Country":"Canada",
+  "location" : [60.0000,-95.0000],
+  "Requests":41
+},
+{
+  "Country":"Chile",
+  "location" : [-30.0000,-71.0000],
+  "Requests":110
+},
+{
+  "Country":"China",
+  "location": [35.0000,105.0000],
+  "Requests":0
+},
+{
+  "Country":"Colombia",
+  "location": [4.0000,-72.0000],
+  "Requests":0
+},
+{
+  "Country":"Costa Rica",
+  "location": [10.0000,-84.0000],
+  "Requests":0
+},
+{
+  "Country":"Croatia",
+  "location": [45.1667,15.5000],
+  "Requests":0
+},
+{
+  "Country":"Czech Republic",
+  "location": [49.7500,15.5000],
+  "Requests":0
+}, 
+{
+  "Country":"Denmark",
+  "location": [56.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Dominican Republic",
+  "location": [19.0000,-70.6667],
+  "Requests":0
+},
+{
+  "Country":"Ecuador",
+  "location": [-2.0000,-77.5000],
+  "Requests":0
+},
+{
+  "Country":"Egypt",
+  "location": [27.0000,30.0000],
+  "Requests":0
+},
+{
+  "Country":"Estonia",
+  "location": [59.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"Finland",
+  "location": [64.0000,26.0000],
+  "Requests":0
+},
+{
+  "Country":"France",
+  "location" : [46.0000,2.0000],
+  "Requests":846
+},
+{
+  "Country":"Georgia",
+  "location": [42.0000,43.5000],
+  "Requests":0
+},
+{
+  "Country":"Germany",
+  "location" : [51.0000,9.0000],
+  "Requests":458
+},
+{
+  "Country":"Greece",
+  "location": [39.0000,22.0000],
+  "Requests":0
+},
+{
+  "Country":"Hong Kong",
+  "location" : [22.2500,114.1667],
+  "Requests":0
+},
+{
+  "Country":"Hungary",
+  "location": [47.0000,20.0000],
+  "Requests":0
+},
+{
+  "Country":"India",
+  "location" : [20.0000,77.0000],
+  "Requests":1061
+},
+{
+  "Country":"Indonesia",
+  "location": [-5.0000,120.0000],
+  "Requests":0
+},
+{
+  "Country":"Ireland",
+  "location": [53.0000,-8.0000],
+  "Requests":0
+},
+{
+  "Country":"Israel",
+  "location" : [31.5000,34.7500],
+  "Requests":30
+},
+{
+  "Country":"Italy",
+  "location" : [42.8333,12.8333],
+  "Requests":550
+},
+{
+  "Country":"Japan",
+  "location" : [36.0000,138.0000],
+  "Requests":44
+},
+{
+  "Country":"Kenya",
+  "location": [1.0000,38.0000],
+  "Requests":0
+},
+{
+  "Country":"Kosovo",
+  "location": [42.463486,21.468315],
+  "Requests":0
+},
+{
+  "Country":"Lebanon",
+  "location": [33.8333,35.8333],
+  "Requests":0
+},
+{
+  "Country":"Liechtenstein",
+  "location": [47.1667,9.5333],
+  "Requests":0
+},
+{
+  "Country":"Lithuania",
+  "location": [56.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"Luxembourg",
+  "location": [49.7500,6.1667],
+  "Requests":0
+},
+{
+  "Country":"Macau",
+  "location": [22.1667,113.5500],
+  "Requests":0
+},
+{
+  "Country":"Malaysia",
+  "location": [2.5000,112.5000],
+  "Requests":0
+},
+{
+  "Country":"Maldives",
+  "location": [3.2500,73.0000],
+  "Requests":0
+},
+{
+  "Country":"Malta",
+  "location": [35.8333,14.5833],
+  "Requests":0
+},
+{
+  "Country":"Mauritius",
+  "location": [-20.2833,57.5500],
+  "Requests":0
+},
+{
+  "Country":"Mexico",
+  "location": [23.0000,-102.0000],
+  "Requests":0
+},
+{
+  "Country":"Namibia",
+  "location": [-22.0000,17.0000],
+  "Requests": 0
+},
+{
+  "Country":"Nepal",
+  "location": [28.0000,84.0000],
+  "Requests": 0
+},
+{
+  "Country":"Netherlands",
+  "location" : [52.5000,5.7500],
+  "Requests":67
+},
+{
+  "Country":"New Zealand",
+  "location" : [-41.0000,174.0000],
+  "Requests":0
+},
+{
+  "Country":"Nigeria",
+  "location" : [10.0000,8.0000],
+  "Requests":0
+},
+{
+  "Country":"Norway",
+  "location" : [62.0000,10.0000],
+  "Requests":0
+},
+{
+  "Country":"Pakistan",
+  "location" : [30.0000,70.0000],
+  "Requests":0
+},
+{
+  "Country":"Peru",
+  "location" : [-10.0000,-76.0000],
+  "Requests":0
+},
+{
+  "Country":"Poland",
+  "location" : [52.0000,20.0000],
+  "Requests":86
+},
+{
+  "Country":"Portugal",
+  "location" : [39.5000,-8.0000],
+  "Requests":45
+},
+{
+  "Country":"Romania",
+  "location": [46.0000,25.0000],
+  "Requests":0
+},
+{
+  "Country":"Russia",
+  "location": [60.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Singapore",
+  "location" : [1.3667,103.8000],
+  "Requests":62
+},
+{
+  "Country":"Slovakia",
+  "location": [48.6667,19.5000],
+  "Requests":0
+},
+{
+  "Country":"Slovenia",
+  "location": [46.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"South Africa",
+  "location": [-29.0000,24.0000],
+  "Requests":0
+},
+{
+  "Country":"South Korea",
+  "location" : [37.0000,127.5000],
+  "Requests":44
+},
+{
+  "Country":"Spain",
+  "location" : [40.0000,-4.0000],
+  "Requests":324
+},
+{
+  "Country":"Sweden",
+  "location": [62.0000,15.0000],
+  "Requests":0
+},
+{
+  "Country":"Switzerland",
+  "location" : [47.0000,8.0000],
+  "Requests":42
+},
+{
+  "Country":"Taiwan",
+  "location" : [23.5000,121.0000],
+  "Requests":0
+},
+{
+  "Country":"Thailand",
+  "location": [15.0000,100.0000],
+  "Requests":0
+},
+{
+  "Country":"Turkey",
+  "location" : [39.0000,35.0000],
+  "Requests":0
+},
+{
+  "Country":"Ukraine",
+  "location": [49.0000,32.0000],
+  "Requests":0
+},
+{
+  "Country":"United Arab Emirates",
+  "location": [24.0000,54.0000],
+  "Requests":0
+},
+{
+  "Country":"United Kingdom",
+  "location" : [54.0000,-2.0000],
+  "Requests":1166
+},
+{
+  "Country":"United States",
+  "location" : [38.0000,-97.0000],
+  "Requests":3580
+},
+{
+  "Country":"Vatican City",
+  "location": [41.9000,12.4500],
+  "Requests":0
+}
+];
+
+// Draw bubbles
+      svg.selectAll("circle")
+        .data(requests)
+        // .enter()
+        // .append("circle")
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d){ return projection([d.location[1], d.location[0]])[0]; } ) //projection([long, lat])[1]
+        .attr("cy", function(d){ return projection([d.location[1], d.location[0]])[1]; })
+        .attr("r",function(d) {
+          return Math.sqrt(d.Requests/3.14)})
+        .attr("fill", "#009925")
+        .style("opacity",0.6)
+        .on('mouseover',function(d){
+          tip.show(d);
+          d3.select(this)
+            .style("opacity", 1)
+            .style("stroke","#3369E8")
+            .style("stroke-width",2.5);
+        })
+        .on('mouseout', function(d){
+          tip.hide(d);
+          d3.select(this)
+            .style("opacity", 0.6)
+            .style("stroke","white")
+            .style("stroke-width",0.5);
+        });
+  });
+</script>
+<p style="padding-left: 3%;">Source: Google Transparency Report</p>
+
+</body>
+</html>
