@@ -1,0 +1,74 @@
+<!-- Hi Heather, I tried to use C3 to create this graph because I cannot figure out how to use double Y axes in combination graph in Google Charts. 
+
+I had a question when I was making this: it's about if I should invert the Y-axis value for the ranks. Because smaller the number is, better the rank is. If I don't invert it, readers would feel that the ranking is getting worse, which is the oppoiste. So I really want to know what you would handle this problem. Thank you so much!-->
+
+<DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>Trend of "Sophia"</title>
+    <!-- Load c3.css -->
+	<link href="c3.css" rel="stylesheet" type="text/css">
+
+	<!-- Load d3.js and c3.js -->
+	<script src="d3.min.js" charset="utf-8"></script>
+	<script src="c3.min.js"></script>
+</head>
+
+<body>
+	<h1>National Baby Name Trend - "Sophia"</h1>
+	<p>According to the U.S. Social Security Administration, "Sophia" was the most popular name for baby girls who were born in 2013. This graph illustrates the growing trend of the name "Sophia" since 1980 by showing number of babies who were named "Sophia" and it rank among all the female names in that year.</p>
+	<div id="chart">
+	<script type="text/javascript">
+
+	var chart = c3.generate( {
+		bindto:"#chart",
+		data: {
+			x:'date',
+			columns: [
+				['date','1980','1981','1982','1983','1984','1985','1986','1987','1988','1989','1990','1991','1992','1993','1994','1995','1996','1997','1998','1999','2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013'],
+				['Number of babies',642,1232,1160,1194,1084,1097,1062,1122,1163,1058,1125,1258,1353,1498,1613,1763,2513,3639,4303,5422,6560,7158,8662,9682,10913,12667,13493,17011,16071,16920,20601,21799,22245,21075],
+				['Rank',366,211,224,210,245,236,245,238,226,254,250,228,211,196,185,168,125,94,73,53,42,37,27,20,15,12,9,6,7,4,2,1,1,1],
+			],
+			type:'bar',
+			types: {
+				Rank: 'line',
+			},
+			axes: {
+				Rank: 'y2'
+			}
+	},
+	axis: {
+		x: {
+			tick: {
+				values: [1980,1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013]
+			},
+			label: {
+				text:'Year',
+				position:'outer-center'
+			}
+		},
+		y: {
+			label: {
+				text: 'Number of babies',
+				position: 'outer-middle'
+			}
+		},
+		y2: {
+			min:450,
+			max:-50,
+			show: true,
+			label: {
+				text: 'Rank',
+				position: 'outer-middle'
+			}
+		}
+	}
+
+});
+</script>
+</div>
+
+
+
+</body>
+</html>
