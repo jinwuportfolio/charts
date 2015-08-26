@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<title>D3: Setting path fills dynamically to generate a choropleth</title>
+	<script type="text/javascript" src="d3.v3.js"></script>
+	<script src="http://d3js.org/topojson.v1.min.js"></script>
+	<script src="d3-tip.js"></script>
+	<link href='http://fonts.googleapis.com/css?family=Archivo+Narrow:400,700' rel='stylesheet' type='text/css'>
+	
+	<style type="text/css">
+		p {
+			margin-left: 20%;
+			margin-right: 20%;
+		}
+
+
+			 .d3-tip {
+    line-height: 1.5;
+    font-weight: 400;
+    font-family:"avenir next", Arial, sans-serif;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #FFA500;
+    border-radius: 10px;
+    pointer-events: none;
+    }
+
+    /* Creates a small triangle extender for the tooltip */
+    .d3-tip:after {      
+      box-sizing: border-box;
+      display: inline;
+      font-size: 8px;
+      width: 100%;
+      line-height: 1.5;
+      color: rgba(0, 0, 0, 0.6);
+      position: absolute;
+      pointer-events: none;
+    }
+
+			button {
+		      color: white;
+		      border-radius: 15px;
+		      border: #009925;
+		      font-family: helvetica;
+		      font-size:0.8em;
+		      background: #009925;
+		      padding: 2% 2%  2% 2%;
+		      text-decoration: none;
+		      width:100%;
+		    }
+
+		    ul {
+		    	list-style-type: none;
+		    }
+
+		    li {
+		    	float: left;
+		    }
+
+		    #tab {
+		    	width: 90%;
+		    	margin-left: 25%;
+		    	margin-top: 3%;
+		    }
+
+		    #title {
+		    	padding-left: 20%;
+		    	margin-top: 3%;
+		    	font-size:1.5em;
+		    	color:grey;
+		    }
+
+		    #map {
+		    	padding-left: 300px;
+		    }
+
+		    .legend-scale ul {
+    margin: 0;
+    padding-left: 45%;
+    float: left;
+    list-style: none;
+    }
+  .legend-scale ul li {
+    display: block;
+    float: left;
+    width: 50px;
+    margin-bottom: 6px;
+    text-align: left;
+    font-size: 80%;
+    list-style: none;
+    }
+  ul.legend-labels li span {
+    display: block;
+    float: left;
+    height: 15px;
+    width: 50px;
+    }
+
+   h1 {
+   	text-align: center;
+   	font-family: 'Archivo Narrow', sans-serif;
+   	font-weight: 700;
+   	font-size: 4em;
+   	z-index:100; 
+   	color:white;
+   	padding-bottom: 3%;
+   	padding-top: 10%;
+   }
+
+   #first {
+   	background: url(feature.jpg) no-repeat center center;
+   	margin:0 0 0 0;
+   	background-size: cover;
+   }
+
+	</style>
+</head>
+
+<body>
+<!-- <div id="first"><img src="feature.jpg" style="width:100%;z-index:-1;"> -->
+<div id="first">
+	<br><br><br><br><br><br><br><br><br>
+	<h1>Medicare Part D Data<br>Discloses Drug Prescription Patterns</h1>
+</div>
+<!-- <div id="first"><img src="feature.jpg" style="width:100%;z-index:-1;">
+</div> -->
+<p style="text-align:center;">by Jin Wu</p>
+<br>
+<br>
+<p>In 2013, the federal government spent about $65 billion on prescription drugs covered by Medicare’s Part D program; and more than half of them were for branded drugs, according to the Centers for Medicare and Medicaid Services.</p>
+
+<p>The addition of prescription-drug coverage, started in 2006, was Medicare’s largest expansion since its creation in 1965. Medicare Part D provides affordable prescription drugs to more than 39 million seniors and the disabled.</p> 
+
+
+<div id="tab">
+		<ul>
+			<li><button id="total">Total Drug Cost Per Person</button></li>
+    		<li><span style="padding-left:8%;padding-right:4%"><button id="brand">Brand-name Drug Cost Per Person</span></button></li>
+    		<li><span style="padding-left:20%;"><button id="generic">Generic Drug Cost Per Person</button></span></li>
+		</ul>
+	</div>
+		</br>	
+		<p id="title">Total Drug Cost Per Person</p>
+		<img id="legend" src="legend1.svg" style="width:250px;margin-left:40%;">
+		<div id="map"></div>
+		<script type="text/javascript">
+			
+			//define tooltip 
+			var tip = d3.tip()
+					.attr('class','d3-tip')
+					.offset([-10,0])
+					.html(function(d) {
+						return d.properties.name +"<br>"+"<strong>Drug Cost Per Person:</strong>"+ "$"+d.properties.value;
+					})
+		
+			//Width and height
+			var w = 1000;
+			var h = 600;
+
+			//Define map projection
+			var projection = d3.geo.albersUsa()
+								   .translate([w/2, h/2])
+								   .scale([1000]);
+
+			//Define path generator
+			var path = d3.geo.path()
+							 .projection(projection);
+							 
+			//Define quantize scale to sort data values into buckets of color
+			var color = d3.scale.quantize()
+								.range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
+
+			var color2 = d3.scale.quantize()
+								.range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
+
+			var color3 = d3.scale.quantize()
+								.range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
+
+			//Create SVG element
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			svg.call(tip);
+
+			//Load in PartD data
+			d3.csv("drugcostperperson_bystate_51states.csv", function(data) {
+
+		color.domain([
+					d3.min(data, function(d) { return Number(d.value); }), 
+					d3.max(data, function(d) { return Number(d.value); })
+				]);
+
+				//Load in GeoJSON data
+				d3.json("us-states.json", function(json) {
+
+					//Loop through once for each data value
+					for (var i = 0; i < data.length; i++) {
+				
+						//Grab state name
+						var dataState = data[i].name;
+						
+						//Grab data value, and convert from string to float
+						var dataValue = parseFloat(data[i].value);
+				
+						//Find the corresponding state inside the GeoJSON
+						for (var j = 0; j < json.features.length; j++) {
+						
+							var jsonState = json.features[j].properties.name;
+				
+							if (dataState == jsonState) {
+						
+								//Copy the data value into the JSON
+								json.features[j].properties.value = dataValue;
+								
+								//Stop looking through the JSON
+								break;
+								
+							}
+						}		
+					}
+
+					//Bind data and create one path per GeoJSON feature
+					svg.selectAll("path")
+					   .data(json.features)
+					   .enter()
+					   .append("path")
+					   .attr("class","map")
+					   .attr("d", path)
+					   .style("fill", function(d) {
+					   		//Get data value
+					   		var value = d.properties.value;
+					   		
+					   		if (value) {
+					   			//If value exists…
+						   		return color(value);
+					   		} else {
+					   			//If value is undefined…
+						   		return "#ccc";
+					   		}
+					   })
+					   .style("opacity",0.6)
+					   .style("stroke","white")
+            			.style("stroke-width",0.3)
+
+					   // mouseevents
+					   .on("mouseover",function(d) {
+					   		tip.show(d);
+					   		d3.select(this)
+					   			.style("opacity",1)
+            					.style("stroke-width",2.5);
+            				})					   	
+          				
+
+					   .on("mouseout",function(d) {
+					   		tip.hide(d);
+					   		d3.select(this)
+					   		.style("opacity", 0.6)
+            				.style("stroke","white")
+            				.style("stroke-width",0.3);
+					   })
+			
+				});
+			
+			});
+		
+		// update date for brand-name drugs
+		d3.select("#brand")
+  			.on("click", function() {
+     		document.getElementById("title").innerHTML = "Brand-Name Drug Cost Per Person";
+     		document.getElementById("legend").src="legend2.svg";
+
+     		d3.csv("brandcostperperson_bystate_51states.csv", function(data) {
+     			color2.domain([
+					d3.min(data, function(d) { return Number(d.value); }), 
+					d3.max(data, function(d) { return Number(d.value); })
+				]);
+ 
+ 			// 	color.domain([
+				// 	d3.min(data, function(d) { return Number(d.value); }), 
+				// 	d3.max(data, function(d) { return Number(d.value); })
+				// ]);
+
+				// var color = d3.scale.quantize()
+				// 				.range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
+				
+
+				// Load in GeoJSON data
+				d3.json("us-states.json", function(json) {
+
+					//Loop through once for each data value
+					for (var i = 0; i < data.length; i++) {
+				
+						//Grab state name
+						var dataState = data[i].name;
+						
+						//Grab data value, and convert from string to float
+						var dataValue = parseFloat(data[i].value);
+				
+						//Find the corresponding state inside the GeoJSON
+						for (var j = 0; j < json.features.length; j++) {
+						
+							var jsonState = json.features[j].properties.name;
+				
+							if (dataState == jsonState) {
+						
+								//Copy the data value into the JSON
+								json.features[j].properties.value = dataValue;
+								
+								//Stop looking through the JSON
+								break;
+								
+							}
+						}		
+					}
+
+					//Update data and create one path per GeoJSON feature
+					svg.selectAll("path");
+							//Update input domain for color scale
+				
+					svg.selectAll('path')
+					   .data(json.features)
+					//   .enter()
+					//   .append("path")
+					//   .attr("d", path)
+					   .style("fill", function(d) {
+					   		//Get data value
+					   		var value = d.properties.value;
+					   		if (value) {
+					   			//If value exists…
+						   		return color2(value);
+					   		} else {
+					   			//If value is undefined…
+						   		return "#ccc";
+					   		}
+					   })
+					   .style("opacity",0.6)
+					   .style("stroke","white")
+            			.style("stroke-width",0.3)
+
+					   // mouseevents
+					   .on("mouseover",function(d) {
+					   		tip.show(d);
+					   		d3.select(this)
+					   			.style("opacity",1)
+            					.style("stroke-width",2.5);
+            				})					   	
+          				
+
+					   .on("mouseout",function(d) {
+					   		tip.hide(d);
+					   		d3.select(this)
+					   		.style("opacity", 0.6)
+            				.style("stroke","white")
+            				.style("stroke-width",0.3);
+					   })
+			
+				});
+			
+			});
+
+
+
+     	});
+
+		// update date for generic drugs
+		d3.select("#generic")
+  			.on("click", function() {
+     		document.getElementById("title").innerHTML = "Generic Drug Cost Per Person";
+     		document.getElementById("legend").src="legend3.svg";
+
+     		d3.csv("generic_state.csv", function(data) {
+     			color3.domain([
+					d3.min(data, function(d) { return Number(d.value); }), 
+					d3.max(data, function(d) { return Number(d.value); })
+				]);
+
+				
+
+				// Load in GeoJSON data
+				d3.json("us-states.json", function(json) {
+
+					//Loop through once for each data value
+					for (var i = 0; i < data.length; i++) {
+				
+						//Grab state name
+						var dataState = data[i].name;
+						
+						//Grab data value, and convert from string to float
+						var dataValue = parseFloat(data[i].value);
+				
+						//Find the corresponding state inside the GeoJSON
+						for (var j = 0; j < json.features.length; j++) {
+						
+							var jsonState = json.features[j].properties.name;
+				
+							if (dataState == jsonState) {
+						
+								//Copy the data value into the JSON
+								json.features[j].properties.value = dataValue;
+								
+								//Stop looking through the JSON
+								break;
+								
+							}
+						}		
+					}
+
+					//Update data and create one path per GeoJSON feature
+					svg.selectAll("path")
+					   .data(json.features)
+					 //  .enter()
+					//   .append("path")
+					//   .attr("d", path)
+					   .style("fill", function(d) {
+					   		//Get data value
+					   		var value = d.properties.value;
+					   		
+					   		if (value) {
+					   			//If value exists…
+						   		return color3(value);
+					   		} else {
+					   			//If value is undefined…
+						   		return "#ccc";
+					   		}
+					   })
+					   .style("opacity",0.6)
+					   .style("stroke","white")
+            			.style("stroke-width",0.3)
+
+					   // mouseevents
+					   .on("mouseover",function(d) {
+					   		tip.show(d);
+					   		d3.select(this)
+					   			.style("opacity",1)
+            					.style("stroke-width",2.5);
+            				})					   	
+          				
+
+					   .on("mouseout",function(d) {
+					   		tip.hide(d);
+					   		d3.select(this)
+					   		.style("opacity", 0.6)
+            				.style("stroke","white")
+            				.style("stroke-width",0.3);
+					   })
+			
+				});
+			
+			});
+
+
+
+     	});
+
+		// update date for total drugs
+		d3.select("#total")
+  			.on("click", function() {
+     		document.getElementById("title").innerHTML = "Total Drug Cost Per Person";
+     		document.getElementById("legend").src="legend1.svg";
+
+     		d3.csv("drugcostperperson_bystate_51states.csv", function(data) {
+     			color.domain([
+					d3.min(data, function(d) { return Number(d.value); }), 
+					d3.max(data, function(d) { return Number(d.value); })
+				]);
+ 
+
+				// var color = d3.scale.quantize()
+				// 				.range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
+				
+
+				// Load in GeoJSON data
+				d3.json("us-states.json", function(json) {
+
+					//Loop through once for each data value
+					for (var i = 0; i < data.length; i++) {
+				
+						//Grab state name
+						var dataState = data[i].name;
+						
+						//Grab data value, and convert from string to float
+						var dataValue = parseFloat(data[i].value);
+				
+						//Find the corresponding state inside the GeoJSON
+						for (var j = 0; j < json.features.length; j++) {
+						
+							var jsonState = json.features[j].properties.name;
+				
+							if (dataState == jsonState) {
+						
+								//Copy the data value into the JSON
+								json.features[j].properties.value = dataValue;
+								
+								//Stop looking through the JSON
+								break;
+								
+							}
+						}		
+					}
+
+					//Update data and create one path per GeoJSON feature
+					svg.selectAll("path");
+							//Update input domain for color scale
+				
+					svg.selectAll('path')
+					   .data(json.features)
+					//   .enter()
+					//   .append("path")
+					//   .attr("d", path)
+					   .style("fill", function(d) {
+					   		//Get data value
+					   		var value = d.properties.value;
+					   		if (value) {
+					   			//If value exists…
+						   		return color(value);
+					   		} else {
+					   			//If value is undefined…
+						   		return "#ccc";
+					   		}
+					   })
+					   .style("opacity",0.6)
+					   .style("stroke","white")
+            			.style("stroke-width",0.3)
+
+					   // mouseevents
+					   .on("mouseover",function(d) {
+					   		tip.show(d);
+					   		d3.select(this)
+					   			.style("opacity",1)
+            					.style("stroke-width",2.5);
+            				})					   	
+          				
+
+					   .on("mouseout",function(d) {
+					   		tip.hide(d);
+					   		d3.select(this)
+					   		.style("opacity", 0.6)
+            				.style("stroke","white")
+            				.style("stroke-width",0.3);
+					   })
+			
+				});
+			
+			});
+
+
+
+     	});
+
+			
+		</script>
+
+<p>Many states with higher poverty rates used slightly more prescription drugs, according to an analysis of data published by Center of Medicare and Medicaid in early 2014 and the Census statistics.</p> 
+
+<p>“Certainly, [states with higher poverty] may have higher levels of diabetes, higher levels of hypertension,” said Jack Hoadley, research professor in the Health Policy Institute at Georgetown University. These diseases would potentially lead to higher usage of prescription drugs.</p>
+
+<p>Diving deeper, those states sometimes also have higher brand-name drug usage. Louisiana, with the second highest poverty rate in U.S., also has the second highest usage of brand-name drugs. Kentucky, which ranks fifth highest on poverty rate, spent $954 on brand-name drug per person, which is only less than what Alabama spent.</p>
+
+<p>Other states such as Alabama, Georgia, West Virginia, Mississippi and Texas, part of ten states that spent most on branded drug per person, also have a quite high brand-name drug usage while the poverty rate there is high.</p> 
+
+<p>For instance, Mississippi, with a poverty of more than 22 percent, spent almost $900 on brand-name drugs per person. Alabama, which spent most on branded drug per person in the Unites States, has a poverty rate of 16 percent.</p>
+<br>
+
+<script type='text/javascript' src='https://public.tableau.com/javascripts/api/viz_v1.js'></script><div class='tableauPlaceholder' style='width: 1004px; height: 869px; margin-left:13%;'><noscript><a href='#'><img alt='Dashboard 2 ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Po&#47;PovertyrateandBrand-namedrugcostperperson&#47;Dashboard2&#47;1_rss.png' style='border: none' /></a></noscript><object class='tableauViz' width='1004' height='869' style='display:none;'><param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' /> <param name='site_root' value='' /><param name='name' value='PovertyrateandBrand-namedrugcostperperson&#47;Dashboard2' /><param name='tabs' value='no' /><param name='toolbar' value='yes' /><param name='static_image' value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Po&#47;PovertyrateandBrand-namedrugcostperperson&#47;Dashboard2&#47;1.png' /> <param name='animate_transition' value='yes' /><param name='display_static_image' value='yes' /><param name='display_spinner' value='yes' /><param name='display_overlay' value='yes' /><param name='display_count' value='yes' /><param name='showVizHome' value='no' /><param name='showTabs' value='y' /><param name='bootstrapWhenNotified' value='true' /></object></div>
+<br>
+
+<p>Hoadley speculates that there could be a potential connection between poverty rate and brand-name drug usage. “Although people with low-income may have more incentives to use generic drugs due to price issues, they may be less knowledgeable about if generics are equally good as branded one,” he said during a phone interview. “They may be more suspicious.”</p>
+
+<p>In 2014, CMS first published the detailed data of prescription drug cost in 2013. The database tracked 3,450 different drugs prescribed by a million doctors, nurse practitioners, medical students, dentists and other providers.</p>
+
+<p>Federal officials said they hoped that making the data transparent would lead to new studies about the prescribing patterns of doctors and for particular drugs.</p>
+
+<p>“Having a better sense on the side of Part D drugs and increase publicity of which doctors are using a specific drug opened more policy discussion,” Hoadley said.</p>
+
+<p>The heated debate on cost of brand-name drugs reached its peak when drugs curing hepatitis C went to the market.  In 2013, Part D spent about $286 million on earlier-generation hepatitis C drugs; the number increased to $4.5 billion in 2014 after new hepatitis C drugs were commercialized.</p> 
+
+<p>Why do these specialty drugs cost so much? Gilead, the company manufacturing Hepatitis C drug Sovaldi, claims that the pricing reflects its value.</p>
+
+<p>“In the years in the past, it was typical for manufacturers to justify their prices based on the cost of making the drug as well as researching the drug,” Hoadley said. “Companies did a lot of unsuccessful attempts to develop a new drug, and only a relatively small percentage of the drugs they’ve tried to develop end up being approved to the market. But today, companies are justifying their prices in terms of money saved for the system or the value of those drugs to the patients who are taking them. This is questionable.”</p>
+
+<p>According to the CMS, specialties of internal medicine, family practice, nurse practitioner, neurology and psychiatry has prescribed drugs with highest total cost in 2013. These five specialties are also the ones that prescribed the most brand-name drugs.</p> 
+<br>
+
+<script type='text/javascript' src='https://public.tableau.com/javascripts/api/viz_v1.js'></script><div class='tableauPlaceholder' style='width: 1004px; height: 869px; margin-left:13%;'><noscript><a href='#'><img alt='Dashboard 1 ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;me&#47;medicationclaimcostbydoctorspecialty&#47;Dashboard1&#47;1_rss.png' style='border: none' /></a></noscript><object class='tableauViz' width='1004' height='869' style='display:none;'><param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' /> <param name='site_root' value='' /><param name='name' value='medicationclaimcostbydoctorspecialty&#47;Dashboard1' /><param name='tabs' value='no' /><param name='toolbar' value='yes' /><param name='static_image' value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;me&#47;medicationclaimcostbydoctorspecialty&#47;Dashboard1&#47;1.png' /> <param name='animate_transition' value='yes' /><param name='display_static_image' value='yes' /><param name='display_spinner' value='yes' /><param name='display_overlay' value='yes' /><param name='display_count' value='yes' /><param name='showVizHome' value='no' /><param name='showTabs' value='y' /><param name='bootstrapWhenNotified' value='true' /></object></div>
+<br>
+
+<p>While generic drugs are more and more often prescribed to patients due to their more reasonable prices, some specialties still prescribed more brand-name drugs than generics in 2013: cardiology, critical care, health maintenance organization, ophthalmology, optometry, pediatric and pulmonary disease.</p> 
+
+<p>For instance, optometry doctors had more than 2 million claims prescribing branded drugs and just under 1.5 million claims prescribing generic drugs. Cost per branded drug prescription is almost 10 times of what a generic drug prescription cost.  Pediatrics had 179 claims for generic drugs while the one for branded drugs were 225, and the cost for the latter is more than 14 times of what generic drugs cost.</p>
+
+<p>Price gap among different pharmacies could also be one of the reasons leading to the high cost of drug prescription. Doc&i is an online platform for doctors and patients to check prices of prescription drugs in different pharmacy stores. Co-founder Brad Becker said that the price gap sometimes is quite big. With more transparency on drug pricing, patients as well as doctors could save much money and time. Disclosed data could also provide patients with questions about drugs prescribed to them.</p>
+
+<br>
+<br>
+
+<iframe width='100%' height='500px' frameBorder='0' src='https://a.tiles.mapbox.com/v4/mandywj.n8n2hfac/attribution,zoompan,zoomwheel,geocoder,share.html?access_token=pk.eyJ1IjoibWFuZHl3aiIsImEiOiJlN2U5Y2I3ZWI1ZGVkMGE5ZDE4MTBhOGQyZWQ3N2I3NCJ9.hYQv3eVnCJ87XvxEzk4rpA'></iframe>
+
+<div class='legend-scale'>
+  <ul class='legend-labels'>
+    <li><span style='background:#cff09e;'></span>$100</li>
+    <li><span style='background:#a8dba8;'></span>$200</li>
+    <li><span style='background:#79bd9a;'></span>$300</li>
+    <li><span style='background:#3b8686;'></span>$400</li>
+  </ul>
+  
+  <ul class='legend-labels'>
+    <li><span style='background:#fff220;border-radius: 50%;
+	width:10px;height:10px;'></span>$200M</li>
+    <li><span style='background:#fff220;border-radius: 50%;
+	width:13px;height:13px;'></span>$250M</li>
+    <li><span style='background:#fff220;border-radius: 50%;
+	width:16px;height:16px;'></span>$300M</li>
+    <li><span style='background:#fff220;border-radius: 50%;
+	width:19px;height:19px;'></span>$350M</li>
+  </ul>
+</div>
+
+<br>
+<br>
+<br>
+<br>
+
+<p>Some industry experts called for caution in examining the CMS data in April. PhRMA, a drug industry trade group, said in a statement that “significant price negotiation exists in Part D and results in rebates of as high as 20 to 30 percent for branded medicines; and these savings are not reflected in the data.”</p>
+
+<p>The American Medical Association also said the data could be misleading. “The data does not account for varying strengths or dosage levels of the medications or varying patient needs,” it said in a written statement.</p>
+
+<p>The Congressional Budget Office estimates that Part D spending will total $76 billion in 2015, up $11 billion from 2013, representing 14 percent of total Medicare spending in 2015.</p>
+
+</body>
+</html>
