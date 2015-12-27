@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sleeping Time Survey</title>
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="css/d3.slider.css" type="text/css" media="screen" />
+</head>
+
+<body>
+<div id="main-wrapper" class="container">
+    
+    <div id="sliders">
+        <div id="metric-descrip" class="metric">
+            <h3>How many hours did you sleep yesterday?</h3>
+            <div id="value" class="valuedesc"></div>
+            <div id="valueslider" class="sliderholder"></div>
+            <p>In 2014, 40% of participants spent 8 hours or less per day on sleeping.</p>
+            <div id="note">
+            <p>NOTE:Only civilians who are 15 and older are included.</p>
+            <p>Source: Bureau of Labor Statistics, 2014</p>
+            </div>
+        </div>
+    </div>
+	
+	<div id="chart"></div>
+    <p id="ack">*This interactive visualization was created by following Nathan Yau's tutorial</p>
+    
+</div><!-- @end #main-wrapper -->
+
+
+
+<script src="js/d3-3-5-5.min.js"></script>
+<script src="js/d3.slider.js"></script>
+<script src="js/d3-tip.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

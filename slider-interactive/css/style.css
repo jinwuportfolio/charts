@@ -1,0 +1,148 @@
+/* #Reset & Basics (Inspired by E. Meyers)
+================================================== */
+	html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+		margin: 0;
+		padding: 0;
+		border: 0;
+		font-size: 100%;
+		font: inherit;
+		vertical-align: baseline; }
+	article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+		display: block; }
+	body {
+		line-height: 1; }
+	ol, ul {
+		list-style: none; }
+	blockquote, q {
+		quotes: none; }
+	blockquote:before, blockquote:after,
+	q:before, q:after {
+		content: '';
+		content: none; }
+	table {
+		border-collapse: collapse;
+		border-spacing: 0; }
+    p {
+        font-family: helvetica,sans-serif;
+        font-size: 1em;
+        margin: 0 0 0px 10px;
+    }
+
+
+    #note{
+        font-size: 0.7em;
+        font-style: italic;
+        margin-top: 10%;
+        line-height: 120%;
+    }
+
+#main-wrapper {
+/*    width: 1090px;*/
+    margin: 10% 10%;
+    font-family: helvetica,sans-serif;
+}
+h3 {
+    font-size: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0 0 20px 10px;
+}
+
+#sliders {
+    width: 300px;
+    float: left;
+    margin-right: 20px;
+}
+.valuedesc {
+    height: 24px;
+    padding: 0 10px;
+	font-size: 16px;
+}
+#description {
+    font-family: helvetica,sans-serif;
+    font-style: italic;
+    margin: 30px 0;
+    padding: 0 10px;
+    font-size: 13px;
+	line-height: 1.5em;
+}
+
+.clr { clear: both; }
+
+
+.bar {
+  fill: #ccc;
+}
+
+#sleeping .bar.highlight, .sleeping span {
+    fill: #ff4500;
+	color: #ff4500;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+    .axis text {
+        font-family: helvetica,sans-serif;
+        font-size: 14px;
+    }
+    .y.axis path { display: none; }
+    .x.axis path { display: none; }
+
+.baseline line {
+    stroke: #000;
+    stroke-width: 2px;
+}
+
+#indicator line {
+    stroke: #666;
+    stroke-width: 1px;
+    stroke-dasharray: 1,2;
+    stroke-linecap: round;
+}
+#indicator text {
+    font-family: helvetica,sans-serif;
+    text-anchor: middle;
+    font-size: 0.7em;
+    text-transform: uppercase;
+}
+
+.d3-tip {
+    font-size:0.5em;
+    font-weight: 400;
+    font-family:helvetica,sans-serif;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #FFA500;
+    border-radius: 1px;
+    pointer-events: none;
+}
+
+.d3-tip:after {      
+      box-sizing: border-box;
+      display: inline;
+      font-size: 8px;
+      width: 100%;
+      line-height: 1.5;
+      color: rgba(0, 0, 0, 0.6);
+      position: absolute;
+      pointer-events: none;
+    }
+
+.d3-tip.n:after {
+      content: "\25BC";
+      margin: -1px 0 0 0;
+      top: 100%;
+      left: 0;
+      text-align: center;
+    }
+
+#ack {
+    margin-top: 3%;
+}
