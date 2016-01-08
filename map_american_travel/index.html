@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<head>
+    <title>How People Get to Work?</title>
+    <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+</head>
+
+<body>
+<div id="title">
+<h1>How Americans Get to Work?</h1>
+<p id="byline">Produced by Jin Wu following Nathan Yau's tutorial</p>
+</div>
+
+<div id="main-wrapper">
+
+<div id="metrics">
+    <div id="instruct">
+      <p>Select one or more modes of transportation. Counties are colored by most common among selection.</p>
+    </div>
+    <div id="motor">
+        <h3>Motor Vehicle</h3>
+        <ul>
+        <li data-metric="HC01_EST_VC04" class="selected HC01_EST_VC04">Drive Alone</li>
+        <li data-metric="HC01_EST_VC05" class="selected HC01_EST_VC05">Carpool</li>
+        <li data-metric="HC01_EST_VC10" class="selected HC01_EST_VC10">Public Transportation</li>
+        <li data-metric="HC01_EST_VC13" class="selected HC01_EST_VC13">Taxi or Others</li>
+        </ul>
+    </div>
+    
+    <div id="non-motor">
+        <h3>Non-motor Vehicle</h3>
+        <ul>
+            <li data-metric="HC01_EST_VC11" class="selected HC01_EST_VC11">Walk</li>
+            <li data-metric="HC01_EST_VC12" class="selected HC01_EST_VC12">Bicycle</li>
+            <li data-metric="HC01_EST_VC14" class="selected HC01_EST_VC14">Work from Home</li>
+        </ul>
+    </div>
+    <div class="clr"></div>
+</div><!-- @end #metrics -->    
+
+<div id="tooltip" class="tooltip">
+    <h3 class="name"></h3>
+    <div data-metric="HC01_EST_VC04" class="line">
+        <div class="HC01_EST_VC04 symbol"></div> Drive Alone 
+        <div class="HC01_EST_VC04_val moe"></div>
+        <div class="HC01_EST_VC04_val val"></div>
+    </div>
+    <div data-metric="HC01_EST_VC05" class="line">
+        <div class="HC01_EST_VC05 symbol"></div> Carpool
+        <div class="HC01_EST_VC05_val moe"></div>
+        <div class="HC01_EST_VC05_val val"></div>
+    </div>
+    <div data-metric="HC01_EST_VC10" class="line">
+        <div class="HC01_EST_VC10 symbol"></div> Public Trans.
+        <div class="HC01_EST_VC10_val moe"></div>
+        <div class="HC01_EST_VC10_val val"></div>
+    </div>
+    <div data-metric="HC01_EST_VC11" class="line">
+        <div class="HC01_EST_VC11 symbol"></div> Walk
+        <div class="HC01_EST_VC11_val moe"></div> 
+        <div class="HC01_EST_VC11_val val"></div>
+    </div>
+    <div data-metric="HC01_EST_VC12" class="line">
+        <div class="HC01_EST_VC12 symbol"></div> Bicycle
+        <div class="HC01_EST_VC12_val moe"></div> 
+        <div class="HC01_EST_VC12_val val"></div>
+    </div>
+    <div data-metric="HC01_EST_VC13" class="line">
+        <div class="HC01_EST_VC13 symbol"></div> Taxi or Other
+        <div class="HC01_EST_VC13_val moe"></div>
+        <div class="HC01_EST_VC13_val val"></div>
+    </div>
+    <div data-metric="HC01_EST_VC14" class="line">
+        <div class="HC01_EST_VC14 symbol"></div> Work from Home
+        <div class="HC01_EST_VC14_val moe"></div>
+        <div class="HC01_EST_VC14_val val"></div>
+    </div>
+</div> 
+    
+</div><!-- @end #main-wrapper -->    
+<div id="credit">
+<p>Source: United States Census Bureau's 2013 American Community Survey</p>
+</div>   
+    
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/queue.v1.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
